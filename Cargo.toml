@@ -7,7 +7,5 @@ edition = "2018"
 [dependencies]
 clap = "2.32"
 toml = "0.4"
-
-[dependencies.rss]
-version = "1.6.1"
-features = ["from_url"]
+serde = { version = "1.0", features = ["derive"] }
+rss = { version = "1.6", features = ["from_url"] }

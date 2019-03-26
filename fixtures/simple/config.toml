@@ -1,0 +1,6 @@
+[setting]
+output_format = "html"
+
+[source]
+mine = "https://quinoa42.github.io/rss.xml"
+again = "quinoa42.github.io/rss.xml"
