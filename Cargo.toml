@@ -1,0 +1,13 @@
+[package]
+name = "rsst"
+version = "0.1.0"
+authors = ["quinoa42 <quinoa42@outlook.jp>"]
+edition = "2018"
+
+[dependencies]
+clap = "2.32"
+toml = "0.4"
+
+[dependencies.rss]
+version = "1.6.1"
+features = ["from_url"]
