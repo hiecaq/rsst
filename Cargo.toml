@@ -7,5 +7,7 @@ edition = "2018"
 [dependencies]
 clap = "2.32"
 toml = "0.4"
+md5 = "0.6"
+html5ever = "0.22"
 serde = { version = "1.0", features = ["derive"] }
-rss = { version = "1.6", features = ["from_url"] }
+rss = { version = "1.7", features = ["from_url"] }
