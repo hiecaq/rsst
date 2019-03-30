@@ -1,5 +1,5 @@
-use rss;
 use md5;
+use rss;
 
 #[derive(Debug)]
 pub struct Article {
@@ -20,7 +20,7 @@ impl Article {
                 None => match x.description() {
                     Some(v) => v,
                     None => "",
-                }
+                },
             }),
             date: String::from(x.pub_date().unwrap_or("")),
             title: String::from(x.title().unwrap_or("")),
@@ -29,9 +29,13 @@ impl Article {
                 None => match x.link() {
                     Some(v) => v,
                     None => "",
-                }
+                },
             }),
-            category: x.categories().iter().map(|c| String::from(c.name())).collect(),
+            category: x
+                .categories()
+                .iter()
+                .map(|c| String::from(c.name()))
+                .collect(),
         }
     }
 }
@@ -54,7 +58,7 @@ impl Metadata {
                     None => match ch.items()[0].description() {
                         Some(v) => v,
                         None => ch.title(), // should not be possible
-                    }
+                    },
                 },
             }
         };
@@ -82,11 +86,12 @@ pub fn to_source(url: &str) -> Result<Source, Error> {
         Err(_) => return Err(Error::RSSParseFailed),
     };
     let metadata = Metadata::new(&channel);
-    let article = channel.into_items().into_iter().map(|x| Article::new(&x)).collect();
-    Ok(Source {
-        metadata,
-        article,
-    })
+    let article = channel
+        .into_items()
+        .into_iter()
+        .map(|x| Article::new(&x))
+        .collect();
+    Ok(Source { metadata, article })
 }
 
 // TODO: tests
