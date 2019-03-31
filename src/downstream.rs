@@ -1,4 +1,4 @@
-use super::upstream::Article;
+use crate::upstream::Article;
 use html5ever::driver::ParseOpts;
 use html5ever::interface::{ElementFlags, QualName};
 use html5ever::rcdom::{Node, RcDom};

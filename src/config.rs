@@ -14,6 +14,8 @@ pub enum Error {
 #[derive(Deserialize)]
 pub struct Setting {
     pub output_format: Option<String>,
+    pub output_dir: Option<String>,
+    pub metadata_dir: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -56,7 +58,9 @@ mod tests {
         let config: Config = toml::from_str(
             r#"
             [setting]
+            metadata_dir = "$HOME/.local/share/rsst"
             output_format = "markdown"
+            output_dir = "$HOME/rsst/"
             [source]
             example1 = "https://example.com/rss.xml"
             example2 = "https://example.org/rss.xml"
@@ -64,6 +68,11 @@ mod tests {
         )
         .unwrap();
         assert_eq!(config.setting.output_format, Some(String::from("markdown")));
+        assert_eq!(config.setting.output_dir, Some(String::from("$HOME/rsst/")));
+        assert_eq!(
+            config.setting.metadata_dir,
+            Some(String::from("$HOME/.local/share/rsst"))
+        );
         assert_eq!(config.source.len(), 2);
         assert_eq!(
             config.source.get("example1"),
