@@ -1,23 +1,7 @@
+use crate::util;
 use serde::Deserialize;
-use std::env;
-use std::fs;
 use std::path::PathBuf;
 use toml;
-
-#[derive(Debug, PartialEq)]
-pub enum Error {
-    NotSupported,
-    NotFound,
-    ParseFailed,
-}
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl std::error::Error for Error {}
 
 #[derive(Deserialize)]
 pub struct Setting {
@@ -32,40 +16,18 @@ pub struct Config {
     pub source: std::collections::BTreeMap<String, String>,
 }
 
-fn to_string(name: Option<PathBuf>) -> Result<String, Error> {
-    let filepath = match name {
-        None => {
-            let xdg_config_home = match env::var("XDG_CONFIG_HOME") {
-                Ok(path) => PathBuf::from(path),
-                Err(_) => PathBuf::from(match env::var("HOME") {
-                    Ok(v) => v,
-                    Err(_) => return Err(Error::NotSupported),
-                })
-                .join(".config"),
-            };
-            xdg_config_home.join("rsst").join("config.toml")
-        }
-        Some(name) => name,
-    };
-    match fs::read_to_string(filepath) {
+pub fn get(name: Option<PathBuf>) -> Result<Config, util::Error> {
+    let output = util::to_string(name)?;
+    match toml::from_str(&output) {
         Ok(v) => Ok(v),
-        Err(_) => Err(Error::NotFound),
-    }
-}
-
-pub fn get(name: Option<PathBuf>) -> Result<Config, Error> {
-    match to_string(name) {
-        Ok(output) => match toml::from_str(&output) {
-            Ok(v) => Ok(v),
-            Err(_) => Err(Error::ParseFailed),
-        },
-        Err(e) => Err(e),
+        Err(_) => Err(util::Error::ParseFailed),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::env;
 
     #[test]
     fn parse_example() {
@@ -123,8 +85,8 @@ mod tests {
     #[test]
     fn to_string_none() {
         assert_eq!(
-            super::to_string(Some(PathBuf::from("NOT_EXISTS"))),
-            Err(Error::NotFound)
+            super::util::to_string(Some(PathBuf::from("NOT_EXISTS"))),
+            Err(util::Error::NotFound)
         );
     }
 
@@ -134,7 +96,7 @@ mod tests {
             .expect("failed to get current dir")
             .join("fixtures/empty/");
         env::set_var("XDG_CONFIG_HOME", fixtures);
-        assert_eq!(to_string(None), Ok(String::from("")));
+        assert_eq!(util::to_string(None), Ok(String::from("")));
     }
 
     #[test]
@@ -143,7 +105,7 @@ mod tests {
             .expect("failed to get current dir")
             .join("fixtures/NON_EXISTS/");
         env::set_var("XDG_CONFIG_HOME", fixtures);
-        assert_eq!(to_string(None), Err(Error::NotFound));
+        assert_eq!(util::to_string(None), Err(util::Error::NotFound));
     }
 
     #[test]
@@ -152,7 +114,7 @@ mod tests {
             .expect("failed to get current dir")
             .join("fixtures/nothing/");
         env::set_var("XDG_CONFIG_HOME", fixtures);
-        assert_eq!(to_string(None), Err(Error::NotFound));
+        assert_eq!(util::to_string(None), Err(util::Error::NotFound));
     }
 
     #[test]
