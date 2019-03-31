@@ -24,22 +24,28 @@ pub struct Config {
     pub source: std::collections::BTreeMap<String, String>,
 }
 
-fn to_string(name: &str) -> Result<String, Error> {
-    let xdg_config_home = match env::var("XDG_CONFIG_HOME") {
-        Ok(path) => PathBuf::from(path),
-        Err(_) => PathBuf::from(match env::var("HOME") {
-            Ok(v) => v,
-            Err(_) => return Err(Error::NotSupported),
-        })
-        .join(".config"),
+fn to_string(name: Option<&str>) -> Result<String, Error> {
+    let filepath = match name {
+        None => {
+            let xdg_config_home = match env::var("XDG_CONFIG_HOME") {
+                Ok(path) => PathBuf::from(path),
+                Err(_) => PathBuf::from(match env::var("HOME") {
+                    Ok(v) => v,
+                    Err(_) => return Err(Error::NotSupported),
+                })
+                .join(".config"),
+            };
+            xdg_config_home.join("rsst").join("config.toml")
+        }
+        Some(name) => PathBuf::from(name),
     };
-    match fs::read_to_string(xdg_config_home.join(name).join("config.toml")) {
+    match fs::read_to_string(filepath) {
         Ok(v) => Ok(v),
         Err(_) => Err(Error::NotFound),
     }
 }
 
-pub fn get(name: &str) -> Result<Config, Error> {
+pub fn get(name: Option<&str>) -> Result<Config, Error> {
     match to_string(name) {
         Ok(output) => match toml::from_str(&output) {
             Ok(v) => Ok(v),
@@ -108,43 +114,61 @@ mod tests {
 
     #[test]
     fn to_string_none() {
-        assert_eq!(super::to_string("NOT_EXISTS"), Err(Error::NotFound));
+        assert_eq!(super::to_string(Some("NOT_EXISTS")), Err(Error::NotFound));
     }
 
     #[test]
-    fn to_string_declared_dir_empty_file() {
+    fn to_string_xdg_dir_empty_file() {
         let fixtures = env::current_dir()
             .expect("failed to get current dir")
-            .join("fixtures");
+            .join("fixtures/empty/");
         env::set_var("XDG_CONFIG_HOME", fixtures);
-        assert_eq!(to_string("empty"), Ok(String::from("")));
+        assert_eq!(to_string(None), Ok(String::from("")));
     }
 
     #[test]
-    fn to_string_declared_dir_not_exists() {
+    fn to_string_xdg_dir_not_exists() {
         let fixtures = env::current_dir()
             .expect("failed to get current dir")
-            .join("fixtures");
+            .join("fixtures/NON_EXISTS/");
         env::set_var("XDG_CONFIG_HOME", fixtures);
-        assert_eq!(to_string("NOT_EXISTS"), Err(Error::NotFound));
+        assert_eq!(to_string(None), Err(Error::NotFound));
     }
 
     #[test]
-    fn to_string_declared_dir_file_not_exists() {
+    fn to_string_xdg_dir_file_not_exists() {
         let fixtures = env::current_dir()
             .expect("failed to get current dir")
-            .join("fixtures");
+            .join("fixtures/nothing/");
         env::set_var("XDG_CONFIG_HOME", fixtures);
-        assert_eq!(to_string("nothing"), Err(Error::NotFound));
+        assert_eq!(to_string(None), Err(Error::NotFound));
+    }
+
+    #[test]
+    fn get_xdg_dir_simple_example() {
+        let fixtures = env::current_dir()
+            .expect("failed to get current dir")
+            .join("fixtures/simple/");
+        env::set_var("XDG_CONFIG_HOME", fixtures);
+        let config = get(None).unwrap();
+        assert_eq!(config.setting.output_format, Some(String::from("html")));
+        assert_eq!(config.source.len(), 2);
+        assert_eq!(
+            config.source.get("mine"),
+            Some(&"https://quinoa42.github.io/rss.xml".to_string())
+        );
+        assert_eq!(
+            config.source.get("again"),
+            Some(&"quinoa42.github.io/rss.xml".to_string())
+        );
     }
 
     #[test]
     fn get_simple_example() {
-        let fixtures = env::current_dir()
+        let filepath = env::current_dir()
             .expect("failed to get current dir")
-            .join("fixtures");
-        env::set_var("XDG_CONFIG_HOME", fixtures);
-        let config = get("simple").unwrap();
+            .join("fixtures/simple/rsst/config.toml");
+        let config = get(filepath.to_str()).unwrap();
         assert_eq!(config.setting.output_format, Some(String::from("html")));
         assert_eq!(config.source.len(), 2);
         assert_eq!(
