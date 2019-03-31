@@ -24,7 +24,7 @@ pub struct Config {
     pub source: std::collections::BTreeMap<String, String>,
 }
 
-fn to_string(name: Option<&str>) -> Result<String, Error> {
+fn to_string(name: Option<PathBuf>) -> Result<String, Error> {
     let filepath = match name {
         None => {
             let xdg_config_home = match env::var("XDG_CONFIG_HOME") {
@@ -37,7 +37,7 @@ fn to_string(name: Option<&str>) -> Result<String, Error> {
             };
             xdg_config_home.join("rsst").join("config.toml")
         }
-        Some(name) => PathBuf::from(name),
+        Some(name) => name,
     };
     match fs::read_to_string(filepath) {
         Ok(v) => Ok(v),
@@ -45,7 +45,7 @@ fn to_string(name: Option<&str>) -> Result<String, Error> {
     }
 }
 
-pub fn get(name: Option<&str>) -> Result<Config, Error> {
+pub fn get(name: Option<PathBuf>) -> Result<Config, Error> {
     match to_string(name) {
         Ok(output) => match toml::from_str(&output) {
             Ok(v) => Ok(v),
@@ -114,7 +114,10 @@ mod tests {
 
     #[test]
     fn to_string_none() {
-        assert_eq!(super::to_string(Some("NOT_EXISTS")), Err(Error::NotFound));
+        assert_eq!(
+            super::to_string(Some(PathBuf::from("NOT_EXISTS"))),
+            Err(Error::NotFound)
+        );
     }
 
     #[test]
@@ -168,7 +171,7 @@ mod tests {
         let filepath = env::current_dir()
             .expect("failed to get current dir")
             .join("fixtures/simple/rsst/config.toml");
-        let config = get(filepath.to_str()).unwrap();
+        let config = get(Some(filepath)).unwrap();
         assert_eq!(config.setting.output_format, Some(String::from("html")));
         assert_eq!(config.source.len(), 2);
         assert_eq!(
