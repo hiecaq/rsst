@@ -5,7 +5,7 @@ authors = ["quinoa42 <quinoa42@outlook.jp>"]
 edition = "2018"
 
 [dependencies]
-clap = "2.32"
+structopt = "0.2"
 toml = "0.4"
 md5 = "0.6"
 html5ever = "0.22"

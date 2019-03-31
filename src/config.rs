@@ -11,6 +11,14 @@ pub enum Error {
     ParseFailed,
 }
 
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl std::error::Error for Error {}
+
 #[derive(Deserialize)]
 pub struct Setting {
     pub output_format: Option<String>,
