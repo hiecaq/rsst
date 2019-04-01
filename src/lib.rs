@@ -6,5 +6,6 @@
 pub mod cli;
 pub mod config;
 pub mod downstream;
+pub mod metadata;
 pub mod upstream;
 pub mod util;

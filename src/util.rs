@@ -28,17 +28,19 @@ fn get_xdg_dir(var: &str, path_from_home: &str) -> Result<PathBuf, Error> {
     })
 }
 
-pub fn to_string(filepath: Option<PathBuf>) -> Result<String, Error> {
-    let filepath = match filepath {
-        None => get_xdg_dir("XDG_CONFIG_HOME", ".config")?
-            .join("rsst")
-            .join("config.toml"),
-        Some(fp) => fp,
-    };
+pub fn to_string(filepath: PathBuf) -> Result<String, Error> {
     match fs::read_to_string(filepath) {
         Ok(v) => Ok(v),
         Err(_) => Err(Error::NotFound),
     }
+}
+
+pub fn get_config_file(config_dir_path: Option<String>) -> Result<PathBuf, Error> {
+    let config_file = match config_dir_path {
+        None => get_xdg_dir("XDG_CONFIG_HOME", ".config/")?.join("rsst/config.toml"),
+        Some(fp) => PathBuf::from(fp),
+    };
+    Ok(config_file)
 }
 
 pub fn get_metadata_dir(meta_dir_path: Option<String>) -> Result<PathBuf, Error> {
@@ -48,4 +50,11 @@ pub fn get_metadata_dir(meta_dir_path: Option<String>) -> Result<PathBuf, Error>
     }
     .join("rsst");
     Ok(metadata_dir)
+}
+
+pub fn get_output_dir(output_dir_path: Option<String>) -> Result<PathBuf, Error> {
+    match output_dir_path {
+        None => get_xdg_dir("RSST_FOLDER", "rsst"),
+        Some(fp) => Ok(PathBuf::from(fp)),
+    }
 }

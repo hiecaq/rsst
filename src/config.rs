@@ -16,8 +16,16 @@ pub struct Config {
     pub source: std::collections::BTreeMap<String, String>,
 }
 
+fn to_string(filepath: Option<PathBuf>) -> Result<String, util::Error> {
+    let filepath = util::get_config_file(match filepath {
+        Some(v) => Some(String::from(v.to_str().expect("filepath is not legal"))),
+        None => None,
+    })?;
+    util::to_string(filepath)
+}
+
 pub fn get(name: Option<PathBuf>) -> Result<Config, util::Error> {
-    let output = util::to_string(name)?;
+    let output = to_string(name)?;
     match toml::from_str(&output) {
         Ok(v) => Ok(v),
         Err(_) => Err(util::Error::ParseFailed),
@@ -85,7 +93,7 @@ mod tests {
     #[test]
     fn to_string_none() {
         assert_eq!(
-            super::util::to_string(Some(PathBuf::from("NOT_EXISTS"))),
+            to_string(Some(PathBuf::from("NOT_EXISTS"))),
             Err(util::Error::NotFound)
         );
     }
@@ -96,7 +104,7 @@ mod tests {
             .expect("failed to get current dir")
             .join("fixtures/empty/");
         env::set_var("XDG_CONFIG_HOME", fixtures);
-        assert_eq!(util::to_string(None), Ok(String::from("")));
+        assert_eq!(to_string(None), Ok(String::from("")));
     }
 
     #[test]
@@ -105,7 +113,7 @@ mod tests {
             .expect("failed to get current dir")
             .join("fixtures/NON_EXISTS/");
         env::set_var("XDG_CONFIG_HOME", fixtures);
-        assert_eq!(util::to_string(None), Err(util::Error::NotFound));
+        assert_eq!(to_string(None), Err(util::Error::NotFound));
     }
 
     #[test]
@@ -114,7 +122,7 @@ mod tests {
             .expect("failed to get current dir")
             .join("fixtures/nothing/");
         env::set_var("XDG_CONFIG_HOME", fixtures);
-        assert_eq!(util::to_string(None), Err(util::Error::NotFound));
+        assert_eq!(to_string(None), Err(util::Error::NotFound));
     }
 
     #[test]

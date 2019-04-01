@@ -46,8 +46,7 @@ fn to_pair(dom: &mut RcDom, key: &str, value: &str) -> Rc<Node> {
     tr
 }
 
-#[allow(clippy::needless_pass_by_value)]
-fn to_table(dom: &mut RcDom, a: Article) -> Rc<Node> {
+fn to_table(dom: &mut RcDom, a: &Article) -> Rc<Node> {
     let table = dom.create_element(
         QualName::new(None, ns!(), local_name!("table")),
         vec![],
@@ -71,7 +70,7 @@ pub struct HTML {
 }
 
 impl HTML {
-    pub fn from(a: Article) -> Self {
+    pub fn from(a: &Article) -> Self {
         let opts = ParseOpts {
             tree_builder: TreeBuilderOpts {
                 drop_doctype: true,
