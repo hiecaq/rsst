@@ -9,7 +9,7 @@ pub struct Metadata {
     pub checksum: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Default)]
 pub struct Collection {
     pub metadata: std::collections::BTreeMap<String, Metadata>,
 }
@@ -19,6 +19,15 @@ pub fn get(name: PathBuf) -> Result<Collection, util::Error> {
     match serde_json::from_str(&output) {
         Ok(v) => Ok(v),
         Err(_) => Err(util::Error::ParseFailed),
+    }
+}
+
+impl Collection {
+    pub fn put(self) -> Result<String, util::Error> {
+        match serde_json::to_string(&self) {
+            Ok(s) => Ok(s),
+            Err(_) => Err(util::Error::DumpFailed),
+        }
     }
 }
 

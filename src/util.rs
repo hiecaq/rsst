@@ -7,6 +7,7 @@ pub enum Error {
     NotSupported,
     NotFound,
     ParseFailed,
+    DumpFailed,
 }
 
 impl std::fmt::Display for Error {

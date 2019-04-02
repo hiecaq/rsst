@@ -67,6 +67,7 @@ fn to_table(dom: &mut RcDom, a: &Article) -> Rc<Node> {
 
 pub struct HTML {
     doc: Rc<Node>,
+    title: String,
 }
 
 impl HTML {
@@ -94,6 +95,7 @@ impl HTML {
         }
         Self {
             doc: Rc::clone(&dom.document),
+            title: String::clone(&a.title),
         }
     }
 
@@ -105,5 +107,9 @@ impl HTML {
         let mut output = vec![];
         self.serialize(&mut output);
         String::from_utf8(output).expect("failed to serialize into string")
+    }
+
+    pub fn filename(&self) -> String {
+        format!("{}.html", &self.title)
     }
 }
