@@ -3,7 +3,7 @@ use html5ever::driver::ParseOpts;
 use html5ever::interface::{ElementFlags, QualName};
 use html5ever::rcdom::{Node, RcDom};
 use html5ever::tendril::{format_tendril, TendrilSink};
-use html5ever::tree_builder::{NodeOrText, TreeBuilderOpts, TreeSink};
+use html5ever::tree_builder::{Attribute, NodeOrText, TreeBuilderOpts, TreeSink};
 use html5ever::{local_name, namespace_url, ns};
 use html5ever::{parse_document, serialize};
 
@@ -65,6 +65,59 @@ fn to_table(dom: &mut RcDom, a: &Article) -> Rc<Node> {
     table
 }
 
+#[allow(clippy::needless_pass_by_value)]
+fn to_title(dom: &mut RcDom, value: &str) -> Rc<Node> {
+    let title = dom.create_element(
+        QualName::new(None, ns!(), local_name!("title")),
+        vec![],
+        ElementFlags::default(),
+    );
+    dom.append(&title, NodeOrText::AppendText(format_tendril!("{}", value)));
+    title
+}
+
+fn to_headinfo(dom: &mut RcDom, a: &Article) -> Vec<Rc<Node>> {
+    vec![
+        dom.create_element(
+            QualName::new(None, ns!(), local_name!("meta")),
+            vec![Attribute {
+                name: QualName::new(None, ns!(), local_name!("charset")),
+                value: format_tendril!("UTF-8"),
+            }],
+            ElementFlags::default(),
+        ),
+        dom.create_element(
+            QualName::new(None, ns!(), local_name!("meta")),
+            vec![
+                Attribute {
+                    name: QualName::new(None, ns!(), local_name!("name")),
+                    value: format_tendril!("viewpoint"),
+                },
+                Attribute {
+                    name: QualName::new(None, ns!(), local_name!("content")),
+                    value: format_tendril!("width=device-width"),
+                },
+            ],
+            ElementFlags::default(),
+        ),
+        dom.create_element(
+            QualName::new(None, ns!(), local_name!("link")),
+            vec![
+                Attribute {
+                    name: QualName::new(None, ns!(), local_name!("rel")),
+                    value: format_tendril!("stylesheet"),
+                },
+                Attribute {
+                    name: QualName::new(None, ns!(), local_name!("href")),
+                    value: format_tendril!("../style.css"),
+                },
+            ],
+            ElementFlags::default(),
+        ),
+        to_title(dom, &a.title),
+    ]
+}
+
 pub struct HTML {
     doc: Rc<Node>,
     title: String,
@@ -84,6 +137,10 @@ impl HTML {
             .read_from(&mut a.content.as_bytes())
             .unwrap();
         let body = Rc::clone(&dom.document.children.borrow()[0].children.borrow()[1]);
+        let head = Rc::clone(&dom.document.children.borrow()[0].children.borrow()[0]);
+        for e in to_headinfo(&mut dom, &a) {
+            dom.append(&head, NodeOrText::AppendNode(e));
+        }
         let table = NodeOrText::AppendNode(to_table(&mut dom, a));
         let sibling = match body.children.borrow().get(0) {
             Some(sibling) => Some(Rc::clone(sibling)),
