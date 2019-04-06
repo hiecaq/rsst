@@ -1,3 +1,5 @@
+//! The CLI interface for `RSSt`.
+
 use crate::config;
 use crate::downstream::HTML;
 use crate::metadata;
@@ -14,6 +16,7 @@ use structopt::StructOpt;
     about = "Save articles from RSS channels offline.",
     rename_all = "kebab-case"
 )]
+/// The options available by run `rsst`.
 pub struct Opt {
     #[structopt(short = "d", long)]
     /// Prints the list of path that articles will be write into
@@ -26,6 +29,7 @@ pub struct Opt {
     pub config: Option<PathBuf>,
 }
 
+/// Try parse the file at `PathBuf` `p` into `metadata::Collection`.
 fn get_collection(p: PathBuf) -> Result<metadata::Collection, util::Error> {
     match metadata::get(p) {
         Ok(v) => Ok(v),
@@ -36,6 +40,7 @@ fn get_collection(p: PathBuf) -> Result<metadata::Collection, util::Error> {
     }
 }
 
+/// Gets the exclusive upperbound index that marks the last article should dump.
 fn get_bound(metadata: Option<metadata::Metadata>, article: &[Article]) -> usize {
     match metadata {
         Some(metadata) => match article.iter().position(|a| a.checksum == metadata.checksum) {
@@ -46,6 +51,7 @@ fn get_bound(metadata: Option<metadata::Metadata>, article: &[Article]) -> usize
     }
 }
 
+/// Run the given command in `opt`. Return an `Error` if failed at any point.
 pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
     let config = config::get(opt.config)?;
     let metadata_dir = get_metadata_dir(config.setting.metadata_dir)?;

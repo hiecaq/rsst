@@ -1,19 +1,26 @@
+//! Code that manipulates the metadata file.
+
 use crate::util;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::path::PathBuf;
 
+/// A metadata entry for a feed.
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub struct Metadata {
+    /// the title of this feed.
     pub title: String,
+    /// the checksum in md5 that marks the last newest article.
     pub checksum: String,
 }
 
+/// A collection that maps alias to metadata for each feed.
 #[derive(Deserialize, Serialize, Default)]
 pub struct Collection {
     pub metadata: std::collections::BTreeMap<String, Metadata>,
 }
 
+/// Try deserializing the file at the given `PathBuf` into a `Collection`.
 pub fn get(name: PathBuf) -> Result<Collection, util::Error> {
     let output = util::to_string(name)?;
     match serde_json::from_str(&output) {
@@ -23,6 +30,7 @@ pub fn get(name: PathBuf) -> Result<Collection, util::Error> {
 }
 
 impl Collection {
+    /// Try Serializing `self` into a `String`.
     pub fn put(self) -> Result<String, util::Error> {
         match serde_json::to_string(&self) {
             Ok(s) => Ok(s),

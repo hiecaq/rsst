@@ -1,3 +1,5 @@
+//! Provides functions related to the the dumped file.
+
 use crate::upstream::Article;
 use html5ever::driver::ParseOpts;
 use html5ever::interface::{ElementFlags, QualName};
@@ -15,6 +17,7 @@ enum Tag {
     TH,
 }
 
+/// Returns `<td>value</td>` or `<th>value</td>`.
 #[allow(clippy::needless_pass_by_value)]
 fn to_entry(dom: &mut RcDom, value: &str, tag: Tag) -> Rc<Node> {
     let td = dom.create_element(
@@ -33,6 +36,7 @@ fn to_entry(dom: &mut RcDom, value: &str, tag: Tag) -> Rc<Node> {
     td
 }
 
+/// Returns `<tr><th>key</th> <td>value</td></tr>`.
 fn to_pair(dom: &mut RcDom, key: &str, value: &str) -> Rc<Node> {
     let tr = dom.create_element(
         QualName::new(None, ns!(), local_name!("tr")),
@@ -46,6 +50,8 @@ fn to_pair(dom: &mut RcDom, key: &str, value: &str) -> Rc<Node> {
     tr
 }
 
+/// Returns `<table> <tr>...</tr> <tr>...</tr> ... </table>` that
+/// contains metadata about `a`.
 fn to_table(dom: &mut RcDom, a: &Article) -> Rc<Node> {
     let table = dom.create_element(
         QualName::new(None, ns!(), local_name!("table")),
@@ -65,6 +71,7 @@ fn to_table(dom: &mut RcDom, a: &Article) -> Rc<Node> {
     table
 }
 
+/// Returns `<title>value</title>`.
 #[allow(clippy::needless_pass_by_value)]
 fn to_title(dom: &mut RcDom, value: &str) -> Rc<Node> {
     let title = dom.create_element(
@@ -76,6 +83,7 @@ fn to_title(dom: &mut RcDom, value: &str) -> Rc<Node> {
     title
 }
 
+/// Returns a list of nodes that should be added to `<head>`.
 fn to_headinfo(dom: &mut RcDom, a: &Article) -> Vec<Rc<Node>> {
     vec![
         dom.create_element(
@@ -118,12 +126,16 @@ fn to_headinfo(dom: &mut RcDom, a: &Article) -> Vec<Rc<Node>> {
     ]
 }
 
+/// HTML is a format that `RSSt` could dump to.
 pub struct HTML {
+    /// saved document.
     doc: Rc<Node>,
+    /// saved title.
     title: String,
 }
 
 impl HTML {
+    /// Build an `HTML` with the given `Article`.
     pub fn from(a: &Article) -> Self {
         let opts = ParseOpts {
             tree_builder: TreeBuilderOpts {
@@ -156,16 +168,19 @@ impl HTML {
         }
     }
 
+    /// Output `self` into the given `Write`.
     pub fn serialize(&self, out: &mut io::Write) {
         serialize(out, &self.doc, serialize::SerializeOpts::default()).expect("yes");
     }
 
+    /// Serialize `self` into a String.
     pub fn to_string(&self) -> String {
         let mut output = vec![];
         self.serialize(&mut output);
         String::from_utf8(output).expect("failed to serialize into string")
     }
 
+    /// Returns the filename of `self`.
     pub fn filename(&self) -> String {
         format!("{}.html", &self.title)
     }

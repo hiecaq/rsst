@@ -1,21 +1,33 @@
+//! Code that manipulates the config file.
+
 use crate::util;
 use serde::Deserialize;
 use std::path::PathBuf;
 use toml;
 
+/// A Setting session that carries optional settings.
 #[derive(Deserialize)]
 pub struct Setting {
+    /// format to dump into. `"html"` or default
     pub output_format: Option<String>,
+    /// the directory to saves all the dumped files.
+    /// Defaults to `"~/rsst"`.
     pub output_dir: Option<String>,
+    /// the directory to saves metadata about the feeds.
+    /// Defaults to `"$XDG_DATA_HOME/rsst"`.
     pub metadata_dir: Option<String>,
 }
 
+/// A top level Configuration.
 #[derive(Deserialize)]
 pub struct Config {
+    /// setting section (fields optional)
     pub setting: Setting,
+    /// source section (fields are `alias -> source url` mappings)
     pub source: std::collections::BTreeMap<String, String>,
 }
 
+/// Try deserializing the file at the given `filepath` into a `String`.
 fn to_string(filepath: Option<PathBuf>) -> Result<String, util::Error> {
     let filepath = util::get_config_file(match filepath {
         Some(v) => Some(String::from(v.to_str().expect("filepath is not legal"))),
@@ -24,6 +36,8 @@ fn to_string(filepath: Option<PathBuf>) -> Result<String, util::Error> {
     util::to_string(filepath)
 }
 
+/// Try deserializing the given file into a `Config`. Use the default filepath
+/// if not given.
 pub fn get(name: Option<PathBuf>) -> Result<Config, util::Error> {
     let output = to_string(name)?;
     match toml::from_str(&output) {

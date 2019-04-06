@@ -1,19 +1,31 @@
+//! Provides functions related to the the source.
+
 use crate::metadata::Metadata;
 use md5;
 use rss;
 
+/// A representation of an article in the feed.
 #[derive(Debug)]
 pub struct Article {
+    /// title of this article.
     pub title: String,
+    /// link to the original article.
     pub link: String,
+    /// author of this article (if given)
     pub author: String,
+    /// date when this article is post
     pub date: String,
+    /// category that this article falls in.
     pub category: Vec<String>,
+    /// the main content of this article. Defaults to
+    /// `content` if given, otherwise `description`.
     pub content: String,
+    /// The md5 checksum of this article.
     pub checksum: String,
 }
 
 impl Article {
+    /// Constructs an `Article` with the given RSS item.
     fn new(x: &rss::Item) -> Self {
         let date = x.pub_date().unwrap_or("");
         let title = x.title().unwrap_or("");
@@ -51,6 +63,7 @@ impl Article {
 }
 
 impl Metadata {
+    /// construct a metadata with the given `Channel`.
     fn new(ch: &rss::Channel) -> Self {
         let candidate = if ch.items().is_empty() {
             ch.title()
@@ -73,14 +86,18 @@ impl Metadata {
     }
 }
 
+/// A representation of a feed.
 #[derive(Debug)]
 pub struct Source {
+    /// articles given in the feed.
     pub article: Vec<Article>,
+    /// metadata about this feed.
     pub metadata: Metadata,
 }
 
 #[derive(Debug)]
 pub enum Error {
+    /// failed to parse the given RSS feed.
     RSSParseFailed,
 }
 
@@ -92,6 +109,7 @@ impl std::fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
+/// Try serializing the feed at the `url` into a `Source`.
 pub fn to_source(url: &str) -> Result<Source, Error> {
     let channel = match rss::Channel::from_url(url) {
         Ok(v) => v,
