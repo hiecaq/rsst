@@ -1,8 +1,10 @@
 [package]
 name = "rsst"
 version = "0.1.0"
-authors = ["quinoa42 <quinoa42@outlook.jp>"]
+authors = ["quinoa42 <quinoa42 at outlook dot jp>"]
 edition = "2018"
+description = "a commandline tool that dump articles in followed feeds into offline files."
+license = "MIT"
 
 [dependencies]
 structopt = "0.2"
