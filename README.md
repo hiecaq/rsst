@@ -21,7 +21,7 @@ example = "https://example.com/rss.xml"
 
 If `output_dir` is not given, the default one is "~/rsst". Sources listed in `source` section are the followed feeds, where `example` is the alias (used as the subdirectory name) and `"https://example.com/rss.xml"` is the feed file address.
 
-2. Simply run `rsst` everytime you want to check if there are new articles. RSSt will keep track of the last newest articles in `XDG_DATA_HOME/rsst`, and incrementally retrieving new articles next time. You can sort files based on created/modified time to see what's new.
+2. Simply run `rsst` everytime you want to check if there are new articles. RSSt will keep track of the last newest articles in `$XDG_DATA_HOME/rsst`, and incrementally retrieving new articles next time. You can sort files based on created/modified time to see what's new.
 
 3. Retrieved articles will be in the given `output_dir` or `~/rsst`. You can read them or parse them with whatever the way you want (web browser, for example).
 
