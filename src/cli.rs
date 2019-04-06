@@ -90,7 +90,9 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                 }
             } else {
                 for o in output.iter().rev() {
-                    write(dir.join(o.filename()), o.to_string())?;
+                    let filepath = dir.join(o.filename());
+                    println!("dumping {} ...", filepath.to_str().unwrap());
+                    write(filepath, o.to_string())?;
                 }
             }
         }
