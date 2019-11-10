@@ -169,7 +169,7 @@ impl HTML {
     }
 
     /// Output `self` into the given `Write`.
-    pub fn serialize(&self, out: &mut io::Write) {
+    pub fn serialize(&self, out: &mut dyn io::Write) {
         serialize(out, &self.doc, serialize::SerializeOpts::default()).expect("yes");
     }
 
